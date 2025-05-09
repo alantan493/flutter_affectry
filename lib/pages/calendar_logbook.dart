@@ -1,0 +1,177 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'journal_entry_page.dart'; // Import the JournalEntryPage
+import '../services/journal_database.dart'; // Import DatabaseService
+
+class CalendarLogbookPage extends StatefulWidget {
+  const CalendarLogbookPage({super.key});
+
+  @override
+  State<CalendarLogbookPage> createState() => _CalendarLogbookPageState();
+}
+
+class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
+  String? selectedCardId; // Track which card is currently selected
+
+  @override
+  Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      return const Center(child: Text('User not logged in.'));
+    }
+
+    final String? currentUserEmail = currentUser.email;
+
+    if (currentUserEmail == null || currentUserEmail.isEmpty) {
+      return const Center(child: Text('User email not found.'));
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Calendar Logbook'),
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('journal_entries')
+            .where('userEmail', isEqualTo: currentUserEmail)
+            .orderBy('timestamp', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text("Error fetching data: ${snapshot.error}"));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No journal entries available.'));
+          }
+
+          final List<DocumentSnapshot> journalEntries = snapshot.data!.docs;
+
+          // Debug: Print all matching documents
+          for (var entry in journalEntries) {
+            final data = entry.data() as Map<String, dynamic>;
+            print("Document ID: ${entry.id}, userEmail: ${data['userEmail']}");
+          }
+
+          return ListView.builder(
+            itemCount: journalEntries.length,
+            itemBuilder: (context, index) {
+              final entry = journalEntries[index];
+              final data = entry.data() as Map<String, dynamic>;
+              final docId = entry.id;
+              final bool isSelected = selectedCardId == docId;
+
+              return Stack(
+                children: [
+                  Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: InkWell(
+                      onTap: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => JournalEntryPage(
+                              docId: docId,
+                              emotion: data['emotion'] ?? '',
+                              journal: data['journal'] ?? '',
+                              pictureDescription: data['pictureDescription'] ?? '',
+                              imageURL: data['imageURL'],
+                              timestamp: data['timestamp']?.toDate(),
+                              userEmail: data['userEmail'] ?? '',
+                            ),
+                          ),
+                        );
+
+                        if (result != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Journal entry updated!')),
+                          );
+                        }
+                      },
+                      onLongPress: () {
+                        setState(() {
+                          selectedCardId = isSelected ? null : docId;
+                        });
+                      },
+                      child: ListTile(
+                        leading: data['imageURL'] != null
+                            ? Image.network(
+                                data['imageURL'],
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              )
+                            : const Icon(Icons.image_not_supported, size: 50),
+                        title: Text(data['emotion'] ?? 'No Emotion'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Journal: ${data['journal'] ?? 'No Journal'}'),
+                            Text('Picture Description: ${data['pictureDescription'] ?? 'No Description'}'),
+                            Text('Date: ${data['timestamp']?.toDate().toString() ?? 'No Date'}'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // X button for deletion that appears when card is selected
+                  if (isSelected)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () async {
+                            try {
+                              final DatabaseService db = DatabaseService();
+                              await db.deleteJournalEntry(docId);
+
+                              setState(() {
+                                selectedCardId = null; // Reset selection
+                              });
+
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Journal entry deleted successfully')),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error deleting entry: $e')),
+                                );
+                              }
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "197949395607",
+    "project_id": "alanv1-51180",
+    "storage_bucket": "alanv1-51180.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:197949395607:android:333f4380387cd5fb85cfd2",
+        "android_client_info": {
+          "package_name": "com.example.emotion_journal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpsHGKYHVoZHl8XtSSdu8Rj3FqXTnZYDE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:197949395607:android:525d00a096daa01f85cfd2",
+        "android_client_info": {
+          "package_name": "com.example.my_app_new"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpsHGKYHVoZHl8XtSSdu8Rj3FqXTnZYDE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

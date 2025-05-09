@@ -1,0 +1,66 @@
+name: emotion_journal
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.7.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^3.13.0
+  cloud_firestore: ^5.6.7
+  cupertino_icons: ^1.0.2
+  flutter_svg: ^2.0.0 # For SVG support
+  firebase_storage: ^12.4.5 # For image upload
+  image_picker: ^1.1.2 # For image selection
+  logger: ^2.0.0 # For logging
+  firebase_auth: ^5.5.3
+  firebase_database: ^11.3.5 # Add this for Realtime Database
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/icons/Arrow - Left 2.svg
+    - assets/icons/button.svg
+    - assets/icons/Search.svg
+    - assets/icons/emotion.png
+    - assets/icons/journal.png
+    - assets/icons/camera.png
+    - assets/icons/happy.png
+    - assets/icons/sad.png
+    - assets/icons/stressed.png
+    - assets/icons/angry.png
+    - assets/icons/anxious.png
+    - assets/icons/frustrated.png
+    - assets/icons/excited.png
+    - assets/icons/calm.png
+    - assets/icons/upload.png
+    - assets/icons/anxious1.png
+    - assets/icons/tired1.png
+    - assets/icons/excited1.png
+    - assets/icons/neutral1.png
+    - assets/icons/background.png
+    - assets/icons/light-1.png
+    - assets/icons/light-2.png
+    - assets/icons/clock.png
+
+fonts:
+    - family: Poppins
+      fonts:
+        - asset: fonts/Poppins-Bold.ttf
+          weight: 700
+        - asset: fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: fonts/Poppins-Regular.ttf
+          weight: 400 
+        - asset: fonts/Poppins-SemiBold.ttf
+          weight: 600
+

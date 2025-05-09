@@ -1,0 +1,414 @@
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import '../services/journal_database.dart';
+import '../models/journal_entry_model.dart';
+import 'package:logger/logger.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+final logger = Logger();
+
+class JournalEntryPage extends StatefulWidget {
+  final String? docId;
+  final String emotion;
+  final String journal;
+  final String pictureDescription;
+  final String? imageURL;
+  final DateTime? timestamp;
+  final String userEmail;
+
+  const JournalEntryPage({
+    super.key,
+    this.docId,
+    required this.emotion,
+    required this.journal,
+    required this.pictureDescription,
+    this.imageURL,
+    this.timestamp,
+    required this.userEmail,
+  });
+
+  @override
+  State<JournalEntryPage> createState() => _JournalEntryPageState();
+}
+
+class _JournalEntryPageState extends State<JournalEntryPage> {
+  late TextEditingController _emotionController;
+  late TextEditingController _journalController;
+  late TextEditingController _pictureDescriptionController;
+
+  bool _isLoading = false;
+  String _selectedEmotion = '';
+  String? _imageURL;
+  File? _pickedImage;
+  String? _fetchedUserEmail;
+
+  @override
+  void initState() {
+    super.initState();
+    _emotionController = TextEditingController(text: widget.emotion);
+    _journalController = TextEditingController(text: widget.journal);
+    _pictureDescriptionController =
+        TextEditingController(text: widget.pictureDescription);
+
+    _selectedEmotion = widget.emotion;
+    _imageURL = widget.imageURL;
+
+    // Fetch user email from Firestore or fallback
+    _fetchAndDisplayUserEmail();
+  }
+
+  Future<void> _fetchAndDisplayUserEmail() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final String userUid = FirebaseAuth.instance.currentUser!.uid;
+      final DatabaseService db = DatabaseService();
+      final String? userEmail = await db.fetchUserEmail(userUid);
+
+      if (userEmail != null && userEmail.isNotEmpty) {
+        setState(() => _fetchedUserEmail = userEmail);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to retrieve user email')),
+        );
+      }
+    } catch (e) {
+      logger.e("Error fetching user email: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _submitData() async {
+    final journal = _journalController.text.trim();
+    final pictureDescription = _pictureDescriptionController.text.trim();
+
+    final String userEmail = _fetchedUserEmail ?? widget.userEmail;
+
+    if (_selectedEmotion.isEmpty ||
+        journal.isEmpty ||
+        pictureDescription.isEmpty ||
+        userEmail.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final entry = JournalEntry(
+        emotion: _selectedEmotion,
+        journal: journal,
+        pictureDescription: pictureDescription,
+        imageURL: _imageURL ?? '',
+        timestamp: DateTime.now(),
+        userEmail: userEmail,
+      );
+
+      logger.i('Submitting JournalEntry: ${entry.toJson()}');
+
+      final DatabaseService db = DatabaseService();
+      String entryId = await db.saveJournalEntry(entry, id: widget.docId);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Data submitted successfully!')),
+        );
+        Navigator.pop(context, entryId);
+      }
+
+      // Reset form
+      _resetForm();
+    } catch (e) {
+      logger.e('Error submitting data: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _resetForm() {
+    _selectedEmotion = '';
+    _imageURL = null;
+    _pickedImage = null;
+    _emotionController.clear();
+    _journalController.clear();
+    _pictureDescriptionController.clear();
+  }
+
+  Future<void> _uploadImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedImage = await picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedImage == null) return;
+
+      setState(() => _pickedImage = File(pickedImage.path));
+
+      final String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      final Reference storageRef = FirebaseStorage.instance.ref().child('images/$fileName');
+
+      await storageRef.putFile(File(pickedImage.path));
+      final String downloadURL = await storageRef.getDownloadURL();
+
+      setState(() => _imageURL = downloadURL);
+    } catch (e) {
+      logger.e('Image upload failed: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Upload failed: $e')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text(
+          'Journal Entry',
+          style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7F8F8),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: SvgPicture.asset('assets/icons/Arrow - Left 2.svg'),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'How are you feeling today?',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+            if (_fetchedUserEmail != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 10, bottom: 20),
+                child: Text(
+                  'Account: $_fetchedUserEmail',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                ),
+              ),
+            _emotionSelectionSection(),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _journalController,
+              maxLines: 4,
+              decoration: InputDecoration(
+                labelText: 'Journal Entry',
+                labelStyle: const TextStyle(color: Colors.black54),
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Image.asset('assets/icons/journal.png', width: 20, height: 20),
+                ),
+                filled: true,
+                fillColor: const Color(0xFFF7F8F8),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 5),
+            const Text(
+              'How are you today? Is everything going well?',
+              style: TextStyle(fontSize: 10, color: Colors.black38),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _pictureDescriptionController,
+                    decoration: InputDecoration(
+                      labelText: 'Picture Description',
+                      labelStyle: const TextStyle(color: Colors.black54),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Image.asset('assets/icons/camera.png', width: 20, height: 20),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF7F8F8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                GestureDetector(
+                  onTap: _uploadImage,
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF92A3FD),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Image.asset('assets/icons/upload.png', width: 20, height: 20),
+                  ),
+                ),
+              ],
+            ),
+            if (_pickedImage != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(10),
+                          image: DecorationImage(
+                            image: FileImage(_pickedImage!),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Uploaded file',
+                        style: TextStyle(fontSize: 12, color: Colors.black54),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            if (_imageURL != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Text(
+                  'Attached File: ${_imageURL!.split('/').last}',
+                  style: const TextStyle(color: Colors.black, fontSize: 9),
+                ),
+              ),
+            const SizedBox(height: 30),
+            Center(
+              child: ElevatedButton(
+                onPressed: _isLoading || _fetchedUserEmail == null ? null : _submitData,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF92A3FD),
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                  elevation: 5,
+                ),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        'Submit Entry',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _emotionSelectionSection() {
+    final List<Map<String, dynamic>> emotions = [
+      {'name': 'Happy', 'iconPath': 'assets/icons/happy.png', 'color': Colors.yellow},
+      {'name': 'Sad', 'iconPath': 'assets/icons/sad.png', 'color': Colors.blue},
+      {'name': 'Angry', 'iconPath': 'assets/icons/angry.png', 'color': Colors.red},
+      {'name': 'Stressed', 'iconPath': 'assets/icons/stressed.png', 'color': Colors.purple},
+      {'name': 'Calm', 'iconPath': 'assets/icons/calm.png', 'color': Colors.green},
+      {'name': 'Excited', 'iconPath': 'assets/icons/excited.png', 'color': Colors.orange},
+      {'name': 'Frustrated', 'iconPath': 'assets/icons/frustrated.png', 'color': Colors.brown},
+      {'name': 'Anxious', 'iconPath': 'assets/icons/anxious.png', 'color': Colors.teal},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Select Your Emotion',
+          style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 15),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: 1,
+          ),
+          itemCount: emotions.length,
+          itemBuilder: (context, index) {
+            final emotion = emotions[index];
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedEmotion = emotion['name'];
+                  _emotionController.text = _selectedEmotion;
+                });
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: _selectedEmotion == emotion['name']
+                      ? emotion['color'].withAlpha(77)
+                      : Colors.grey.withAlpha(51),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Container(
+                      width: 45,
+                      height: 45,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Image.asset(emotion['iconPath']),
+                      ),
+                    ),
+                    Text(
+                      emotion['name'],
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
