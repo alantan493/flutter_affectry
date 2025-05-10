@@ -1,9 +1,12 @@
+// calendar_logbook.dart
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'journal_entry_page.dart'; // Import the JournalEntryPage
 import '../services/journal_database.dart'; // Import DatabaseService
+import 'package:logger/logger.dart'; // ✅ Added Logger
 
 class CalendarLogbookPage extends StatefulWidget {
   const CalendarLogbookPage({super.key});
@@ -14,6 +17,7 @@ class CalendarLogbookPage extends StatefulWidget {
 
 class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
   String? selectedCardId; // Track which card is currently selected
+  final Logger _logger = Logger(); // ✅ Logger instance
 
   @override
   Widget build(BuildContext context) {
@@ -53,10 +57,10 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
 
           final List<DocumentSnapshot> journalEntries = snapshot.data!.docs;
 
-          // Debug: Print all matching documents
+          // ✅ Replaced print() with Logger
           for (var entry in journalEntries) {
             final data = entry.data() as Map<String, dynamic>;
-            print("Document ID: ${entry.id}, userEmail: ${data['userEmail']}");
+            _logger.d("Document ID: ${entry.id}, userEmail: ${data['userEmail']}");
           }
 
           return ListView.builder(
@@ -88,7 +92,7 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
                           ),
                         );
 
-                        if (result != null) {
+                        if (result != null && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Journal entry updated!')),
                           );
@@ -138,12 +142,15 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
                                 selectedCardId = null; // Reset selection
                               });
 
+                              // ✅ Use context.mounted guard
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Journal entry deleted successfully')),
+                                  const SnackBar(
+                                      content: Text('Journal entry deleted successfully')),
                                 );
                               }
                             } catch (e) {
+                              // ✅ Use context.mounted guard
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text('Error deleting entry: $e')),

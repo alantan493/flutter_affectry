@@ -1,9 +1,11 @@
+// login.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 // Make sure these paths match your folder structure
-import 'create_account.dart'; // Import the Create Account page
-import 'forget_password.dart'; // Import the Forgot Password page
+import 'create_account.dart'; // Import Create Account page
+import 'forget_password.dart'; // Import Forgot Password page
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,9 +15,24 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _auth = FirebaseAuth.instance;
+  late final TextEditingController _emailController;
+  late final TextEditingController _passwordController;
+  late final FirebaseAuth _auth;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController();
+    _passwordController = TextEditingController();
+    _auth = FirebaseAuth.instance;
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> _login() async {
     try {
@@ -23,13 +40,18 @@ class _LoginPageState extends State<LoginPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login successful!')),
       );
-      Navigator.pushReplacementNamed(context, '/home'); // Navigate to home page
+      Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
+        SnackBar(content: Text('Error: $e')),
       );
     }
   }
@@ -38,13 +60,12 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
+        fit: StackFit.expand,
         children: [
           // Background Image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/icons/background.png', // Replace with your background image path
-              fit: BoxFit.cover,
-            ),
+          Image.asset(
+            'assets/icons/background.png',
+            fit: BoxFit.cover,
           ),
           // Foreground Content
           Padding(
@@ -53,7 +74,7 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Welcome Back Title
-                Text(
+                const Text(
                   'Welcome Back!',
                   style: TextStyle(
                     fontSize: 28,
@@ -68,11 +89,11 @@ class _LoginPageState extends State<LoginPage> {
                   controller: _emailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
-                    labelStyle: TextStyle(color: Colors.black),
+                    labelStyle: const TextStyle(color: Colors.black),
                     filled: true,
-                    fillColor: Colors.white.withOpacity(0.1),
+                    fillColor: Color.fromRGBO(255, 255, 255, 0.1),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
                       borderSide: BorderSide.none,
                     ),
                   ),
@@ -85,11 +106,11 @@ class _LoginPageState extends State<LoginPage> {
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    labelStyle: TextStyle(color: Colors.black),
+                    labelStyle: const TextStyle(color: Colors.black),
                     filled: true,
-                    fillColor: Colors.white.withOpacity(0.1),
+                    fillColor: Color.fromRGBO(255, 255, 255, 0.1),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
                       borderSide: BorderSide.none,
                     ),
                   ),
@@ -104,8 +125,8 @@ class _LoginPageState extends State<LoginPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    backgroundColor: Colors.white, // Filled white background
-                    foregroundColor: Color.fromRGBO(143, 148, 251, 1), // Text color
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color.fromRGBO(143, 148, 251, 1),
                     elevation: 5,
                   ),
                   child: const Text(
@@ -128,8 +149,8 @@ class _LoginPageState extends State<LoginPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    backgroundColor: Colors.white, // Filled white background
-                    foregroundColor: Color.fromRGBO(143, 148, 251, 1), // Text color
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color.fromRGBO(143, 148, 251, 1),
                     elevation: 5,
                   ),
                   child: const Text(
@@ -152,8 +173,8 @@ class _LoginPageState extends State<LoginPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    backgroundColor: Colors.white, // Filled white background
-                    foregroundColor: Color.fromRGBO(143, 148, 251, 1), // Text color
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color.fromRGBO(143, 148, 251, 1),
                     elevation: 5,
                   ),
                   child: const Text(
