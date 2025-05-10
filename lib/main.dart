@@ -6,7 +6,7 @@ import 'services/firebase_options.dart'; // Firebase configuration
 import 'pages/login.dart'; // Login screen
 import 'pages/create_account.dart'; // Create Account screen
 import 'pages/forget_password.dart'; // Forgot Password screen
-import 'pages/home.dart'; // Home screen
+import 'bottom_navigation_bar.dart'; // 🔄 Renamed to bottom_navigation_bar.dart
 
 // Import logger for better debugging
 import 'package:logger/logger.dart';
@@ -48,8 +48,8 @@ class MyApp extends StatelessWidget {
         '/': (context) => const LoginPage(),
         '/create_account': (context) => const CreateAccountPage(),
         '/forget_password': (context) => const ForgetPasswordPage(),
-        '/home': (context) => const HomePage(),
-        '/login': (context) => const LoginPage(), // Define the /login route
+        '/home': (context) => const BottomNavigationBarScreen(), // ✅ Updated class name
+        '/login': (context) => const LoginPage(),
       },
       debugShowCheckedModeBanner: false, // Remove the debug banner
     );
