@@ -51,6 +51,7 @@ flutter:
     - assets/icons/light-1.png
     - assets/icons/light-2.png
     - assets/icons/clock.png
+    - assets/extracted_journals_conference_papers/
 
 fonts:
     - family: Poppins

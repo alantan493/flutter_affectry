@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 
 class DataAnalysisPage extends StatelessWidget {
-  const DataAnalysisPage({Key? key}) : super(key: key);
+  const DataAnalysisPage({super.key});
 
   @override
   Widget build(BuildContext context) {

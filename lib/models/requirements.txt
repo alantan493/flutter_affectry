@@ -1,0 +1,10 @@
+langchain
+langchain-community
+langchain-openai
+openai
+pdfplumber
+pymupdf
+python-dotenv
+pytesseract
+pdf2image
+Pillow

@@ -17,6 +17,7 @@ class BottomNavigationBarScreen extends StatefulWidget {
 class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   int _selectedIndex = 0;
 
+  // These pages don't require arguments
   final List<Widget> _pages = [
     home.HomePage(),
     calendar.CalendarLogbookPage(),
@@ -28,7 +29,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       userEmail: '',
     ),
     data.DataAnalysisPage(),
-    articles.ArticlesPage(),
+    articles.ArticlesPage(), // ✅ Use list page by default
   ];
 
   void _onItemTapped(int index) {
@@ -54,7 +55,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.book), label: "Logbook"),
           BottomNavigationBarItem(icon: Icon(Icons.add_circle_outline), label: "New Entry"),
           BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: "Data Analysis"),
-          BottomNavigationBarItem(icon: Icon(Icons.article), label: "Articles"),
+          BottomNavigationBarItem(icon: Icon(Icons.article), label: "Read More"),
         ],
       ),
     );
