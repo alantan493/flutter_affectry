@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:logger/logger.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 class ImageStorageService {
   // Firebase Storage instance
@@ -53,6 +56,40 @@ class ImageStorageService {
       return await ref.getDownloadURL();
     } catch (e) {
       _logger.e('Error getting image URL: $e');
+      return null;
+    }
+  }
+  
+  // Download an image from URL and return as File
+  Future<File?> downloadImageFromUrl(String imageUrl) async {
+    try {
+      // Create a temporary directory to store the downloaded file
+      final Directory tempDir = await getTemporaryDirectory();
+      
+      // Generate a file name based on the URL's path or a timestamp
+      String fileName = path.basename(Uri.parse(imageUrl).path);
+      if (fileName.isEmpty || !fileName.contains('.')) {
+        fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      }
+      
+      // Create the file path
+      final String filePath = path.join(tempDir.path, fileName);
+      
+      // Download the file
+      final http.Response response = await http.get(Uri.parse(imageUrl));
+      
+      if (response.statusCode == 200) {
+        // Write to file
+        final File file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+        _logger.i('Image downloaded to file: $filePath');
+        return file;
+      } else {
+        _logger.e('Failed to download image. Status code: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      _logger.e('Error downloading image: $e');
       return null;
     }
   }

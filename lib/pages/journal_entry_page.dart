@@ -7,6 +7,7 @@ import '../models/journal_entry_model.dart';
 import 'package:logger/logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/image_storage.dart';
+import 'ai_analysis_page.dart';  // Add this import
 
 final logger = Logger();
 
@@ -38,6 +39,8 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
   late TextEditingController _emotionController;
   late TextEditingController _journalController;
   late TextEditingController _pictureDescriptionController;
+  late DateTime _selectedDate;  // Add this property
+  late TimeOfDay _selectedTime;  // Add this property
 
   bool _isLoading = false;
   String _selectedEmotion = '';
@@ -56,6 +59,10 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
     _selectedEmotion = widget.emotion;
     // Only set imageURL if it's not null AND not empty
     _imageURL = widget.imageURL?.isNotEmpty == true ? widget.imageURL : null;
+    
+    // Initialize date and time
+    _selectedDate = widget.timestamp ?? DateTime.now();
+    _selectedTime = TimeOfDay.fromDateTime(_selectedDate);
 
     // Fetch user email from Firestore or fallback
     _fetchAndDisplayUserEmail();
@@ -110,7 +117,7 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
         journal: journal,
         pictureDescription: pictureDescription,
         imageURL: _imageURL ?? '',
-        timestamp: DateTime.now(),
+        timestamp: _selectedDate,  // Use the user-selected date and time
         userEmail: userEmail,
       );
 
@@ -123,25 +130,25 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
       // Only proceed if the widget is still mounted
       if (!mounted) return;
       
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Journal entry submitted successfully!')),
+      setState(() => _isLoading = false);
+      
+      // Navigate to AI analysis page instead of home
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AIAnalysisPage(
+            journalEntry: entry,
+            imageURL: _imageURL,
+          ),
+        ),
       );
-      
-      // Navigate to home page instead of popping back
-      Navigator.pushReplacementNamed(context, '/home');
-      
     } catch (e) {
       logger.e('Error submitting data: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
-    } finally {
-      // Only update loading state if still mounted
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() => _isLoading = false);
     }
   }
 
@@ -218,6 +225,45 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Upload failed: $e')),
       );
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = DateTime(
+          picked.year,
+          picked.month,
+          picked.day,
+          _selectedTime.hour,
+          _selectedTime.minute,
+        );
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+        _selectedDate = DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _selectedTime.hour,
+          _selectedTime.minute,
+        );
+      });
     }
   }
 
@@ -323,6 +369,69 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7F8F8),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: 20,
+                          color: Colors.grey[600],
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.calendar_today),
+                          onPressed: () => _selectDate(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7F8F8),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: 20,
+                          color: Colors.grey[600],
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _selectedTime.format(context),
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.access_time),
+                          onPressed: () => _selectTime(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 30),
             if (_imageURL != null && _imageURL!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),

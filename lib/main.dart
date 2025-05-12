@@ -13,6 +13,8 @@ import 'pages/user_profile/edit_profile.dart';
 // Import utilities
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'pages/ai_analysis_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Onboarding screen
 import 'onboarding/onboarding_flow.dart';
@@ -25,6 +27,14 @@ void main() async {
   // Check if user has already onboarded
   final prefs = await SharedPreferences.getInstance();
   final onboarded = prefs.getBool('hasOnboarded') ?? false;
+
+  // Load environment variables from .env file
+  try {
+    await dotenv.load(fileName: ".env");
+    logger.i('Environment variables loaded successfully');
+  } catch (e) {
+    logger.e('Failed to load environment variables: $e');
+  }
 
   // Initialize Firebase
   try {
