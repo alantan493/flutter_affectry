@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -7,6 +6,7 @@ import '../services/journal_database.dart';
 import '../models/journal_entry_model.dart';
 import 'package:logger/logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/image_storage.dart';
 
 final logger = Logger();
 
@@ -54,7 +54,8 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
         TextEditingController(text: widget.pictureDescription);
 
     _selectedEmotion = widget.emotion;
-    _imageURL = widget.imageURL;
+    // Only set imageURL if it's not null AND not empty
+    _imageURL = widget.imageURL?.isNotEmpty == true ? widget.imageURL : null;
 
     // Fetch user email from Firestore or fallback
     _fetchAndDisplayUserEmail();
@@ -116,54 +117,104 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
       logger.i('Submitting JournalEntry: ${entry.toJson()}');
 
       final DatabaseService db = DatabaseService();
-      String entryId = await db.saveJournalEntry(entry, id: widget.docId);
+      // Call the function without storing the return value
+      await db.saveJournalEntry(entry, id: widget.docId);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data submitted successfully!')),
-        );
-        Navigator.pop(context, entryId);
-      }
-
-      // Reset form
-      _resetForm();
+      // Only proceed if the widget is still mounted
+      if (!mounted) return;
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Journal entry submitted successfully!')),
+      );
+      
+      // Navigate to home page instead of popping back
+      Navigator.pushReplacementNamed(context, '/home');
+      
     } catch (e) {
       logger.e('Error submitting data: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
     } finally {
-      setState(() => _isLoading = false);
+      // Only update loading state if still mounted
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
-  }
-
-  void _resetForm() {
-    _selectedEmotion = '';
-    _imageURL = null;
-    _pickedImage = null;
-    _emotionController.clear();
-    _journalController.clear();
-    _pictureDescriptionController.clear();
   }
 
   Future<void> _uploadImage() async {
     try {
+      // 1. Initialize picker
       final ImagePicker picker = ImagePicker();
-      final XFile? pickedImage = await picker.pickImage(source: ImageSource.gallery);
+      
+      // 2. Show debugging dialog before picking
+      if (!mounted) return;  // Add this check
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Opening image picker...')),
+      );
+      
+      // 3. Pick image
+      final XFile? pickedImage = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85, // Adding quality parameter to reduce file size
+      );
 
-      if (pickedImage == null) return;
+      // 4. Debug if image was picked
+      if (pickedImage == null) {
+        logger.w('No image selected');
+        if (!mounted) return;  // Add this check
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No image selected')),
+        );
+        return;
+      }
 
-      setState(() => _pickedImage = File(pickedImage.path));
+      // 5. Debug file information
+      final File imageFile = File(pickedImage.path);
+      final bool fileExists = await imageFile.exists();
+      final int fileSize = await imageFile.length();
+      
+      logger.i('Image picked: ${pickedImage.path}');
+      logger.i('File exists: $fileExists, Size: ${fileSize} bytes');
 
-      final String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      final Reference storageRef = FirebaseStorage.instance.ref().child('images/$fileName');
+      // 6. Set the picked image and update UI
+      if (!mounted) return;  // Add this check
+      setState(() {
+        _pickedImage = imageFile;
+        logger.i('_pickedImage set to: ${_pickedImage?.path}');
+      });
 
-      await storageRef.putFile(File(pickedImage.path));
-      final String downloadURL = await storageRef.getDownloadURL();
+      // 7. Use the ImageStorageService to upload the image
+      final ImageStorageService storageService = ImageStorageService();
+      
+      // 8. Show uploading indicator
+      if (!mounted) return;  // Add this check
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Uploading image...')),
+      );
+      
+      final String? downloadURL = await storageService.uploadImage(imageFile);
 
-      setState(() => _imageURL = downloadURL);
+      if (downloadURL != null) {
+        if (!mounted) return;  // Add this check
+        setState(() {
+          _imageURL = downloadURL;
+          logger.i('Image uploaded successfully, URL: $_imageURL');
+        });
+        
+        if (!mounted) return;  // Add this check
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Image uploaded successfully!')),
+        );
+      } else {
+        throw Exception('Failed to get download URL');
+      }
     } catch (e) {
       logger.e('Image upload failed: $e');
+      if (!mounted) return;  // Add this check
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Upload failed: $e')),
       );
@@ -272,7 +323,34 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
                 ),
               ],
             ),
-            if (_pickedImage != null)
+            if (_imageURL != null && _imageURL!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(10),
+                          image: DecorationImage(
+                            image: NetworkImage(_imageURL!),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Uploaded image',
+                        style: TextStyle(fontSize: 12, color: Colors.black54),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else if (_pickedImage != null)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 child: Center(
@@ -292,19 +370,11 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Uploaded file',
+                        'Selected image',
                         style: TextStyle(fontSize: 12, color: Colors.black54),
                       ),
                     ],
                   ),
-                ),
-              ),
-            if (_imageURL != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: Text(
-                  'Attached File: ${_imageURL!.split('/').last}',
-                  style: const TextStyle(color: Colors.black, fontSize: 9),
                 ),
               ),
             const SizedBox(height: 30),
