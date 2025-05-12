@@ -2,9 +2,45 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/account_database.dart';
+import '../domain/user_profile_model.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final DatabaseService _databaseService = DatabaseService();
+  UserProfile? _userProfile;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final profile = await _databaseService.getUserProfile();
+      setState(() {
+        _userProfile = profile;
+      });
+    } catch (e) {
+      // Handle error if needed
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,100 +60,105 @@ class HomePage extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
       ),
-      body: CustomScrollView(
-        physics: BouncingScrollPhysics(),
-        slivers: <Widget>[
-          // 📣 Header + Welcome Message
-          SliverToBoxAdapter(
-            child: _buildHeaderSection(context, user),
-          ),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: <Widget>[
+                  // 📣 Header + Welcome Message
+                  SliverToBoxAdapter(child: _buildHeaderSection(context, user)),
 
-          // 📊 Mood Summary Card (Placeholder)
-          SliverToBoxAdapter(
-            child: _buildMoodSummaryCard(context),
-          ),
+                  // 📊 Mood Summary Card
+                  SliverToBoxAdapter(child: _buildMoodSummaryCard(context)),
 
-          // 💡 Recommendation / Insight Area (Placeholder)
-          SliverToBoxAdapter(
-            child: _buildRecommendationCard(context),
-          ),
+                  // 💡 Recommendation / Insight Area
+                  SliverToBoxAdapter(child: _buildRecommendationCard(context)),
 
-          // 🔽 Original Content Below
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 40),
-
-                  const Text(
-                    'Welcome to Your Journal',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Use the bottom navigation bar to create journal entries, view your history, and more.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
-                  ),
-
-                  const Spacer(), // Pushes logout button to bottom
-
-                  // Logout Button
-                  ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await FirebaseAuth.instance.signOut();
-                        Navigator.pushReplacementNamed(context, '/login');
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Failed to log out. Please try again.'),
-                          ),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  // 🔽 Original Content Below
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 40,
                       ),
-                      backgroundColor: const Color(0xFF92A3FD),
-                      foregroundColor: Colors.black,
-                      elevation: 5,
-                    ),
-                    child: const SizedBox(
-                      width: double.infinity,
-                      child: Text(
-                        'Log Out',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 40),
+
+                          const Text(
+                            'Welcome to Your Journal',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 20),
+                          const Text(
+                            'Use the bottom navigation bar to create journal entries, view your history, and more.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
+
+                          const Spacer(), // Pushes logout button to bottom
+                          // Logout Button
+                          ElevatedButton(
+                            onPressed: () async {
+                              try {
+                                await FirebaseAuth.instance.signOut();
+                                Navigator.pushReplacementNamed(
+                                  context,
+                                  '/login',
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Failed to log out. Please try again.',
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              backgroundColor: const Color(0xFF92A3FD),
+                              foregroundColor: Colors.black,
+                              elevation: 5,
+                            ),
+                            child: const SizedBox(
+                              width: double.infinity,
+                              child: Text(
+                                'Log Out',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
-  // --- HEADER SECTION ---
   Widget _buildHeaderSection(BuildContext context, User? user) {
-    final String userEmail = user?.email ?? "User";
+    // Use display name from profile if available, otherwise fall back to email
+    final String displayText =
+        _userProfile?.displayName ?? user?.email ?? "User";
 
     return Padding(
       padding: const EdgeInsets.only(left: 28, right: 28, top: 20),
@@ -126,32 +167,26 @@ class HomePage extends StatelessWidget {
         children: [
           Text(
             "Welcome Back!",
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 20,
-            ),
+            style: TextStyle(color: Colors.grey[600], fontSize: 20),
           ),
           SizedBox(height: 8),
           Text(
-            userEmail, // ✅ Show user's email instead of hardcoded name
-            style: TextStyle(
+            displayText, // Now shows display name if available
+            style: const TextStyle(
               color: Colors.black,
               fontSize: 25,
               fontWeight: FontWeight.bold,
             ),
           ),
           SizedBox(height: 4),
-          Text(
-            "How are you feeling today?",
-            style: TextStyle(fontSize: 16),
-          )
+          Text("How are you feeling today?", style: TextStyle(fontSize: 16)),
         ],
       ),
     );
   }
 
   // --- MOOD SUMMARY CARD ---
-    Widget _buildMoodSummaryCard(BuildContext context) {
+  Widget _buildMoodSummaryCard(BuildContext context) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 28, vertical: 12),
       padding: EdgeInsets.all(20),
@@ -169,7 +204,8 @@ class HomePage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded( // ✅ Add Expanded to allow wrapping
+          Expanded(
+            // ✅ Add Expanded to allow wrapping
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -184,10 +220,7 @@ class HomePage extends StatelessWidget {
                 SizedBox(height: 4),
                 Text(
                   "3 Journals · 😊 Happy (Awaiting Data Analytics to be set up)", // Long text
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   maxLines: 2,
                   softWrap: true,
                   overflow: TextOverflow.fade,
@@ -243,10 +276,7 @@ class HomePage extends StatelessWidget {
           SizedBox(height: 12),
           Text(
             "It looks like you've been stressed lately. Try taking a few deep breaths or writing about what's on your mind. (Awaiting LLM to be set up)",
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),

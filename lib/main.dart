@@ -7,6 +7,8 @@ import 'pages/login.dart'; // Login screen
 import 'pages/create_account.dart'; // Create Account screen
 import 'pages/forget_password.dart'; // Forgot Password screen
 import 'bottom_navigation_bar.dart'; // 🔄 Renamed to bottom_navigation_bar.dart
+import 'pages/user_profile/profile_page.dart';
+import 'pages/user_profile/edit_profile.dart';
 
 // Import logger for better debugging
 import 'package:logger/logger.dart';
@@ -23,7 +25,9 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    logger.i('Firebase initialized successfully.'); // Use logger instead of print
+    logger.i(
+      'Firebase initialized successfully.',
+    ); // Use logger instead of print
   } catch (e) {
     logger.e('Error initializing Firebase: $e'); // Use logger instead of print
   }
@@ -48,8 +52,12 @@ class MyApp extends StatelessWidget {
         '/': (context) => const LoginPage(),
         '/create_account': (context) => const CreateAccountPage(),
         '/forget_password': (context) => const ForgetPasswordPage(),
-        '/home': (context) => const BottomNavigationBarScreen(), // ✅ Updated class name
+        '/home':
+            (context) =>
+                const BottomNavigationBarScreen(), // ✅ Updated class name
         '/login': (context) => const LoginPage(),
+        '/profile': (context) => const ProfilePage(),
+        '/edit_profile': (context) => const EditProfilePage(),
       },
       debugShowCheckedModeBanner: false, // Remove the debug banner
     );

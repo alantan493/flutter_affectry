@@ -6,12 +6,14 @@ import 'pages/calendar_logbook.dart' as calendar;
 import 'pages/journal_entry_page.dart' as journal;
 import 'pages/data_analysis_page.dart' as data;
 import 'pages/articles_page.dart' as articles;
+import 'pages/user_profile/profile_page.dart';
 
 class BottomNavigationBarScreen extends StatefulWidget {
   const BottomNavigationBarScreen({super.key});
 
   @override
-  State<BottomNavigationBarScreen> createState() => _BottomNavigationBarScreenState();
+  State<BottomNavigationBarScreen> createState() =>
+      _BottomNavigationBarScreenState();
 }
 
 class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
@@ -30,6 +32,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     ),
     data.DataAnalysisPage(),
     articles.ArticlesPage(), // ✅ Use list page by default
+    const ProfilePage(),
   ];
 
   void _onItemTapped(int index) {
@@ -53,9 +56,19 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.book), label: "Logbook"),
-          BottomNavigationBarItem(icon: Icon(Icons.add_circle_outline), label: "New Entry"),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: "Data Analysis"),
-          BottomNavigationBarItem(icon: Icon(Icons.article), label: "Read More"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_circle_outline),
+            label: "New Entry",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart),
+            label: "Data Analysis",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.article),
+            label: "Read More",
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
