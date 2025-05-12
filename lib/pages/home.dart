@@ -30,12 +30,16 @@ class _HomePageState extends State<HomePage> {
 
     try {
       final profile = await _databaseService.getUserProfile();
+      if (!mounted) return; // Check if still mounted after async operation
+
       setState(() {
         _userProfile = profile;
       });
     } catch (e) {
       // Handle error if needed
     } finally {
+      if (!mounted) return; // Check if still mounted after async operation
+
       setState(() {
         _isLoading = false;
       });
