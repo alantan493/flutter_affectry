@@ -59,6 +59,35 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, '/profile').then((_) {
+                  // Refresh user profile data when returning
+                  if (mounted) _loadUserProfile();
+                });
+              },
+              child: CircleAvatar(
+                backgroundColor: Colors.blue.shade100,
+                radius: 20,
+                child:
+                    _userProfile?.profileImageUrl != null
+                        ? ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.network(
+                            _userProfile!.profileImageUrl!,
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                        : const Icon(Icons.person, color: Colors.blue),
+              ),
+            ),
+          ),
+        ],
       ),
       body:
           _isLoading

@@ -31,8 +31,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       userEmail: '',
     ),
     data.DataAnalysisPage(),
-    articles.ArticlesPage(), // ✅ Use list page by default
-    const ProfilePage(),
+    articles.ArticlesPage(), 
+
   ];
 
   void _onItemTapped(int index) {
@@ -68,7 +68,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
             icon: Icon(Icons.article),
             label: "Read More",
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
