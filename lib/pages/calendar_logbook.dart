@@ -26,6 +26,9 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
   DateTime? _selectedDay;
   Map<DateTime, List<dynamic>> _events = {};
 
+  // Add this state variable
+  bool _showCalendar = false; // Controls calendar visibility
+
   @override
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
@@ -52,6 +55,21 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        // Add calendar toggle button
+        actions: [
+          IconButton(
+            icon: Icon(
+              _showCalendar ? Icons.list : Icons.calendar_month,
+              color: const Color(0xFF92A3FD),
+            ),
+            onPressed: () {
+              setState(() {
+                _showCalendar = !_showCalendar;
+              });
+            },
+            tooltip: _showCalendar ? 'Show List View' : 'Show Calendar View',
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream:
@@ -80,30 +98,33 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
 
           return Column(
             children: [
-              // Calendar widget
-              _buildCalendar(),
+              // Show calendar only when _showCalendar is true
+              if (_showCalendar) ...[
+                _buildCalendar(),
+                const Divider(height: 20, thickness: 1),
+              ],
 
-              // Divider between calendar and entries
-              const Divider(height: 20, thickness: 1),
-
-              // Selected date header
+              // Date header - show different text based on calendar visibility
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
                   children: [
-                    Icon(Icons.calendar_today, color: Colors.blue.shade700),
+                    Icon(
+                      _showCalendar ? Icons.calendar_today : Icons.list_alt,
+                      color: Colors.blue.shade700,
+                    ),
                     const SizedBox(width: 8),
                     Text(
-                      _selectedDay != null
+                      _showCalendar && _selectedDay != null
                           ? 'Entries for ${DateFormat.yMMMd().format(_selectedDay!)}'
-                          : 'All Entries',
+                          : 'All Journal Entries',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const Spacer(),
-                    if (_selectedDay != null)
+                    if (_showCalendar && _selectedDay != null)
                       TextButton(
                         onPressed: () {
                           setState(() {
@@ -146,6 +167,8 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
       ),
     );
   }
+
+  // Rest of your existing methods remain the same
 
   // Process journal entries to create events for the calendar
   void _processJournalEntries(List<DocumentSnapshot> entries) {
@@ -196,6 +219,11 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
         setState(() {
           _calendarFormat = format;
         });
+      },
+      availableCalendarFormats: const {
+        CalendarFormat.month: 'Month',
+        CalendarFormat.twoWeeks: '2 Weeks',
+        CalendarFormat.week: 'Week',
       },
       onPageChanged: (focusedDay) {
         _focusedDay = focusedDay;
