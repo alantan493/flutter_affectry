@@ -45,8 +45,17 @@ class ArticlesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Research Papers"),
-        backgroundColor: const Color(0xff256fff),
+        title: const Text(
+          'Relevant Articles and Journals',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: const Color.fromARGB(0, 0, 0, 0),
+        elevation: 0,
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

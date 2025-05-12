@@ -227,8 +227,8 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
-          'Journal Entry',
-          style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold),
+          'New Journal Entry',
+          style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,

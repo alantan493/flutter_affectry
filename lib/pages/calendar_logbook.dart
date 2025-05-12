@@ -34,7 +34,17 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calendar Logbook'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          'Calendar Logbook',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
