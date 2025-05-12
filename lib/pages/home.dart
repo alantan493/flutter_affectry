@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/account_database.dart';
 import '../domain/user_profile_model.dart';
+import './user_profile/profile_page.dart'; // Add this import
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -59,6 +60,33 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12.0),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfilePage(),
+                  ),
+                );
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],  // Light grey background
+                  shape: BoxShape.circle,   // Circular shape
+                ),
+                padding: const EdgeInsets.all(8.0),  // Padding inside the circle
+                child: const Icon(
+                  Icons.person,
+                  color: Color(0xFF92A3FD),
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body:
           _isLoading

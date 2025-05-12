@@ -68,7 +68,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
             icon: Icon(Icons.article),
             label: "Read More",
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
