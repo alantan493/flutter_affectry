@@ -104,6 +104,9 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const SizedBox(height: 24),
 
+          _buildProfileTipBox(),
+          const SizedBox(height: 24),
+
           // Profile Card
           Card(
             elevation: 3,
@@ -144,6 +147,60 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const SizedBox(width: 8),
           Expanded(child: Text(value, style: const TextStyle(fontSize: 16))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileTipBox() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: BorderSide(color: Colors.blue.shade100, width: 1),
+      ),
+      color: Colors.blue.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.lightbulb_outline, color: const Color(0xff256fff)),
+                const SizedBox(width: 8),
+                const Text(
+                  "Why Complete Your Profile?",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildTipItem(
+              "Get personalized journal recommendations based on your age and preferences",
+            ),
+            _buildTipItem(
+              "Enable more accurate emotional pattern tracking in your analytics",
+            ),
+            _buildTipItem(
+              "Prepare for upcoming features like mood-based community connections",
+            ),
+            _buildTipItem("Create a more personalized journaling experience"),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTipItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.check_circle, size: 16, color: Color(0xff256fff)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
         ],
       ),
     );
