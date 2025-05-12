@@ -35,14 +35,25 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       );
 
       // Step 2: Store additional user data in Firestore
-      await _databaseService.writeUserData(email);
+      if (mounted) {
+        final additionalInfo = await _collectAdditionalInfo(context);
 
-      // Show success message and navigate back to login page
-      if (!mounted) return; // Guard against async gaps
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account created successfully!')),
-      );
-      Navigator.pop(context);
+        // Step 3: Store user data with additional info in Firestore
+        await _databaseService.createUserProfile(
+          email,
+          additionalInfo['displayName'],
+          additionalInfo['age'],
+          additionalInfo['bio'],
+        );
+
+        // Show success message and navigate back to login page
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Account created successfully!')),
+          );
+          Navigator.pop(context);
+        }
+      }
     } catch (e) {
       String errorMessage = 'An error occurred. Please try again.';
       if (e.toString().contains('invalid-email')) {
@@ -54,10 +65,73 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       }
 
       if (!mounted) return; // Guard against async gaps
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
     }
+  }
+
+  Future<Map<String, dynamic>> _collectAdditionalInfo(
+    BuildContext context,
+  ) async {
+    String? displayName;
+    int? age;
+    String? bio;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        final displayNameController = TextEditingController();
+        final ageController = TextEditingController();
+        final bioController = TextEditingController();
+
+        return AlertDialog(
+          title: const Text('Complete Your Profile'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: displayNameController,
+                  decoration: const InputDecoration(labelText: 'Display Name'),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: ageController,
+                  decoration: const InputDecoration(labelText: 'Age'),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: bioController,
+                  decoration: const InputDecoration(
+                    labelText: 'Bio (optional)',
+                  ),
+                  maxLines: 2,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                displayName = displayNameController.text.trim();
+                age =
+                    ageController.text.isNotEmpty
+                        ? int.tryParse(ageController.text.trim())
+                        : null;
+                bio = bioController.text.trim();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return {'displayName': displayName, 'age': age, 'bio': bio};
   }
 
   @override
@@ -94,7 +168,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 labelText: 'Email',
                 labelStyle: TextStyle(color: Colors.black),
                 filled: true,
-                fillColor: Colors.white, // Distinct background color for input fields
+                fillColor:
+                    Colors.white, // Distinct background color for input fields
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide.none,
@@ -111,7 +186,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 labelText: 'Password',
                 labelStyle: TextStyle(color: Colors.black),
                 filled: true,
-                fillColor: Colors.white, // Distinct background color for input fields
+                fillColor:
+                    Colors.white, // Distinct background color for input fields
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide.none,
@@ -124,7 +200,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
             ElevatedButton(
               onPressed: _createAccount,
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 50),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 15,
+                  horizontal: 50,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -145,7 +224,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 Navigator.pop(context); // Navigate back to the login screen
               },
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 20,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
