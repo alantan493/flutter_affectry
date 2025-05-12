@@ -18,6 +18,8 @@ dependencies:
   logger: ^2.0.0 # For logging
   firebase_auth: ^5.5.3
   firebase_database: ^11.3.5 # Add this for Realtime Database
+  table_calendar: ^3.0.9
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:

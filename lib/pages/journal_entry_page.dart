@@ -38,6 +38,8 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
   late TextEditingController _emotionController;
   late TextEditingController _journalController;
   late TextEditingController _pictureDescriptionController;
+  late DateTime _selectedDate;
+  late TimeOfDay _selectedTime;
 
   bool _isLoading = false;
   String _selectedEmotion = '';
@@ -58,8 +60,51 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
     // Only set imageURL if it's not null AND not empty
     _imageURL = widget.imageURL?.isNotEmpty == true ? widget.imageURL : null;
 
+    _selectedDate = widget.timestamp ?? DateTime.now();
+    _selectedTime = TimeOfDay.fromDateTime(_selectedDate);
+
     // Fetch user email from Firestore or fallback
     _fetchAndDisplayUserEmail();
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = DateTime(
+          picked.year,
+          picked.month,
+          picked.day,
+          _selectedTime.hour,
+          _selectedTime.minute,
+        );
+      });
+    }
+  }
+
+  // Add this method for the time picker
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+        _selectedDate = DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _selectedTime.hour,
+          _selectedTime.minute,
+        );
+      });
+    }
   }
 
   Future<void> _fetchAndDisplayUserEmail() async {
@@ -111,7 +156,7 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
         journal: journal,
         pictureDescription: pictureDescription,
         imageURL: _imageURL ?? '',
-        timestamp: DateTime.now(),
+        timestamp: _selectedDate, // Use the user-selected date and time
         userEmail: userEmail,
       );
 
@@ -401,6 +446,68 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
                   ),
                 ),
               ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7F8F8),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: 20,
+                          color: Colors.grey[600],
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.calendar_today),
+                          onPressed: () => _selectDate(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7F8F8),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: 20,
+                          color: Colors.grey[600],
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _selectedTime.format(context),
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.access_time),
+                          onPressed: () => _selectTime(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 30),
             Center(
               child: ElevatedButton(
