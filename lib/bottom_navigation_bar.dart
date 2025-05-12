@@ -57,6 +57,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.book), label: "Logbook"),
           BottomNavigationBarItem(
+            icon: Icon(Icons.add_circle_outline),
+            label: "New Entry",
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart),
             label: "Data Analysis",
           ),
