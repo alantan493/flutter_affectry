@@ -47,14 +47,17 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('journal_entries')
-            .where('userEmail', isEqualTo: currentUserEmail)
-            .orderBy('timestamp', descending: true)
-            .snapshots(),
+        stream:
+            FirebaseFirestore.instance
+                .collection('journal_entries')
+                .where('userEmail', isEqualTo: currentUserEmail)
+                .orderBy('timestamp', descending: true)
+                .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text("Error fetching data: ${snapshot.error}"));
+            return Center(
+              child: Text("Error fetching data: ${snapshot.error}"),
+            );
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -70,7 +73,9 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
           // ✅ Replaced print() with Logger
           for (var entry in journalEntries) {
             final data = entry.data() as Map<String, dynamic>;
-            _logger.d("Document ID: ${entry.id}, userEmail: ${data['userEmail']}");
+            _logger.d(
+              "Document ID: ${entry.id}, userEmail: ${data['userEmail']}",
+            );
           }
 
           return ListView.builder(
@@ -84,27 +89,34 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
               return Stack(
                 children: [
                   Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     child: InkWell(
                       onTap: () async {
                         final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => JournalEntryPage(
-                              docId: docId,
-                              emotion: data['emotion'] ?? '',
-                              journal: data['journal'] ?? '',
-                              pictureDescription: data['pictureDescription'] ?? '',
-                              imageURL: data['imageURL'],
-                              timestamp: data['timestamp']?.toDate(),
-                              userEmail: data['userEmail'] ?? '',
-                            ),
+                            builder:
+                                (context) => JournalEntryPage(
+                                  docId: docId,
+                                  emotion: data['emotion'] ?? '',
+                                  journal: data['journal'] ?? '',
+                                  pictureDescription:
+                                      data['pictureDescription'] ?? '',
+                                  imageURL: data['imageURL'],
+                                  timestamp: data['timestamp']?.toDate(),
+                                  userEmail: data['userEmail'] ?? '',
+                                ),
                           ),
                         );
 
                         if (result != null && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Journal entry updated!')),
+                            const SnackBar(
+                              content: Text('Journal entry updated!'),
+                            ),
                           );
                         }
                       },
@@ -114,21 +126,22 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
                         });
                       },
                       child: ListTile(
-                        leading: data['imageURL'] != null
-                            ? Image.network(
-                                data['imageURL'],
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.cover,
-                              )
-                            : const Icon(Icons.image_not_supported, size: 50),
+                        leading: Icon(
+                          Icons.book,
+                          size: 50,
+                          color: Colors.blue.shade700,
+                        ),
                         title: Text(data['emotion'] ?? 'No Emotion'),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Journal: ${data['journal'] ?? 'No Journal'}'),
-                            Text('Picture Description: ${data['pictureDescription'] ?? 'No Description'}'),
-                            Text('Date: ${data['timestamp']?.toDate().toString() ?? 'No Date'}'),
+                            Text(
+                              'Picture Description: ${data['pictureDescription'] ?? 'No Description'}',
+                            ),
+                            Text(
+                              'Date: ${data['timestamp']?.toDate().toString() ?? 'No Date'}',
+                            ),
                           ],
                         ),
                       ),
@@ -156,14 +169,19 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                      content: Text('Journal entry deleted successfully')),
+                                    content: Text(
+                                      'Journal entry deleted successfully',
+                                    ),
+                                  ),
                                 );
                               }
                             } catch (e) {
                               // ✅ Use context.mounted guard
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Error deleting entry: $e')),
+                                  SnackBar(
+                                    content: Text('Error deleting entry: $e'),
+                                  ),
                                 );
                               }
                             }
