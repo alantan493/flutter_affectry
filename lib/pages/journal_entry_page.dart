@@ -50,8 +50,9 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
     super.initState();
     _emotionController = TextEditingController(text: widget.emotion);
     _journalController = TextEditingController(text: widget.journal);
-    _pictureDescriptionController =
-        TextEditingController(text: widget.pictureDescription);
+    _pictureDescriptionController = TextEditingController(
+      text: widget.pictureDescription,
+    );
 
     _selectedEmotion = widget.emotion;
     // Only set imageURL if it's not null AND not empty
@@ -78,9 +79,9 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
       }
     } catch (e) {
       logger.e("Error fetching user email: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: $e")));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -96,9 +97,9 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
         journal.isEmpty ||
         pictureDescription.isEmpty ||
         userEmail.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
       return;
     }
 
@@ -122,21 +123,20 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
 
       // Only proceed if the widget is still mounted
       if (!mounted) return;
-      
+
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Journal entry submitted successfully!')),
       );
-      
+
       // Navigate to home page instead of popping back
       Navigator.pushReplacementNamed(context, '/home');
-      
     } catch (e) {
       logger.e('Error submitting data: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       // Only update loading state if still mounted
       if (mounted) {
@@ -149,13 +149,13 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
     try {
       // 1. Initialize picker
       final ImagePicker picker = ImagePicker();
-      
+
       // 2. Show debugging dialog before picking
-      if (!mounted) return;  // Add this check
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Opening image picker...')),
-      );
-      
+      if (!mounted) return; // Add this check
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Opening image picker...')));
+
       // 3. Pick image
       final XFile? pickedImage = await picker.pickImage(
         source: ImageSource.gallery,
@@ -165,10 +165,10 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
       // 4. Debug if image was picked
       if (pickedImage == null) {
         logger.w('No image selected');
-        if (!mounted) return;  // Add this check
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No image selected')),
-        );
+        if (!mounted) return; // Add this check
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('No image selected')));
         return;
       }
 
@@ -176,12 +176,12 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
       final File imageFile = File(pickedImage.path);
       final bool fileExists = await imageFile.exists();
       final int fileSize = await imageFile.length();
-      
+
       logger.i('Image picked: ${pickedImage.path}');
       logger.i('File exists: $fileExists, Size: ${fileSize} bytes');
 
       // 6. Set the picked image and update UI
-      if (!mounted) return;  // Add this check
+      if (!mounted) return; // Add this check
       setState(() {
         _pickedImage = imageFile;
         logger.i('_pickedImage set to: ${_pickedImage?.path}');
@@ -189,23 +189,23 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
 
       // 7. Use the ImageStorageService to upload the image
       final ImageStorageService storageService = ImageStorageService();
-      
+
       // 8. Show uploading indicator
-      if (!mounted) return;  // Add this check
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Uploading image...')),
-      );
-      
+      if (!mounted) return; // Add this check
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Uploading image...')));
+
       final String? downloadURL = await storageService.uploadImage(imageFile);
 
       if (downloadURL != null) {
-        if (!mounted) return;  // Add this check
+        if (!mounted) return; // Add this check
         setState(() {
           _imageURL = downloadURL;
           logger.i('Image uploaded successfully, URL: $_imageURL');
         });
-        
-        if (!mounted) return;  // Add this check
+
+        if (!mounted) return; // Add this check
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Image uploaded successfully!')),
         );
@@ -214,10 +214,10 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
       }
     } catch (e) {
       logger.e('Image upload failed: $e');
-      if (!mounted) return;  // Add this check
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Upload failed: $e')),
-      );
+      if (!mounted) return; // Add this check
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
     }
   }
 
@@ -228,7 +228,11 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
       appBar: AppBar(
         title: const Text(
           'New Journal Entry',
-          style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -252,14 +256,22 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
           children: [
             const Text(
               'How are you feeling today?',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
             if (_fetchedUserEmail != null)
               Padding(
                 padding: const EdgeInsets.only(top: 10, bottom: 20),
                 child: Text(
                   'Account: $_fetchedUserEmail',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
               ),
             _emotionSelectionSection(),
@@ -272,7 +284,11 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
                 labelStyle: const TextStyle(color: Colors.black54),
                 prefixIcon: Padding(
                   padding: const EdgeInsets.all(12),
-                  child: Image.asset('assets/icons/journal.png', width: 20, height: 20),
+                  child: Image.asset(
+                    'assets/icons/journal.png',
+                    width: 20,
+                    height: 20,
+                  ),
                 ),
                 filled: true,
                 fillColor: const Color(0xFFF7F8F8),
@@ -298,7 +314,11 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
                       labelStyle: const TextStyle(color: Colors.black54),
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(12),
-                        child: Image.asset('assets/icons/camera.png', width: 20, height: 20),
+                        child: Image.asset(
+                          'assets/icons/camera.png',
+                          width: 20,
+                          height: 20,
+                        ),
                       ),
                       filled: true,
                       fillColor: const Color(0xFFF7F8F8),
@@ -318,7 +338,11 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
                       color: const Color(0xFF92A3FD),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Image.asset('assets/icons/upload.png', width: 20, height: 20),
+                    child: Image.asset(
+                      'assets/icons/upload.png',
+                      width: 20,
+                      height: 20,
+                    ),
                   ),
                 ),
               ],
@@ -380,20 +404,32 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
             const SizedBox(height: 30),
             Center(
               child: ElevatedButton(
-                onPressed: _isLoading || _fetchedUserEmail == null ? null : _submitData,
+                onPressed:
+                    _isLoading || _fetchedUserEmail == null
+                        ? null
+                        : _submitData,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF92A3FD),
                   foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 15,
+                    horizontal: 30,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50),
+                  ),
                   elevation: 5,
                 ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Submit Entry',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
+                child:
+                    _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                          'Submit Entry',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
               ),
             ),
           ],
@@ -404,14 +440,42 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
 
   Widget _emotionSelectionSection() {
     final List<Map<String, dynamic>> emotions = [
-      {'name': 'Happy', 'iconPath': 'assets/icons/happy.png', 'color': Colors.yellow},
+      {
+        'name': 'Happy',
+        'iconPath': 'assets/icons/happy.png',
+        'color': Colors.yellow,
+      },
       {'name': 'Sad', 'iconPath': 'assets/icons/sad.png', 'color': Colors.blue},
-      {'name': 'Angry', 'iconPath': 'assets/icons/angry.png', 'color': Colors.red},
-      {'name': 'Stressed', 'iconPath': 'assets/icons/stressed.png', 'color': Colors.purple},
-      {'name': 'Calm', 'iconPath': 'assets/icons/calm.png', 'color': Colors.green},
-      {'name': 'Excited', 'iconPath': 'assets/icons/excited.png', 'color': Colors.orange},
-      {'name': 'Frustrated', 'iconPath': 'assets/icons/frustrated.png', 'color': Colors.brown},
-      {'name': 'Anxious', 'iconPath': 'assets/icons/anxious.png', 'color': Colors.teal},
+      {
+        'name': 'Angry',
+        'iconPath': 'assets/icons/angry.png',
+        'color': Colors.red,
+      },
+      {
+        'name': 'Stressed',
+        'iconPath': 'assets/icons/stressed.png',
+        'color': Colors.purple,
+      },
+      {
+        'name': 'Calm',
+        'iconPath': 'assets/icons/calm.png',
+        'color': Colors.green,
+      },
+      {
+        'name': 'Excited',
+        'iconPath': 'assets/icons/excited.png',
+        'color': Colors.orange,
+      },
+      {
+        'name': 'Frustrated',
+        'iconPath': 'assets/icons/frustrated.png',
+        'color': Colors.brown,
+      },
+      {
+        'name': 'Anxious',
+        'iconPath': 'assets/icons/anxious.png',
+        'color': Colors.teal,
+      },
     ];
 
     return Column(
@@ -419,7 +483,11 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
       children: [
         const Text(
           'Select Your Emotion',
-          style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 15),
         GridView.builder(
@@ -443,9 +511,10 @@ class _JournalEntryPageState extends State<JournalEntryPage> {
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: _selectedEmotion == emotion['name']
-                      ? emotion['color'].withAlpha(77)
-                      : Colors.grey.withAlpha(51),
+                  color:
+                      _selectedEmotion == emotion['name']
+                          ? emotion['color'].withAlpha(77)
+                          : Colors.grey.withAlpha(51),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
