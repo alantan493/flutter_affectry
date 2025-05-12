@@ -20,6 +20,7 @@ dependencies:
   firebase_database: ^11.3.5 # Add this for Realtime Database
   table_calendar: ^3.0.9
   intl: ^0.18.1
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
@@ -54,6 +55,9 @@ flutter:
     - assets/icons/light-2.png
     - assets/icons/clock.png
     - assets/extracted_journals_conference_papers/
+    - assets/icons/onboard1.png
+    - assets/icons/onboard2.jpg
+    - assets/icons/onboard3.jpg
 
 fonts:
     - family: Poppins

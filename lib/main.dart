@@ -1,43 +1,46 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart'; // For Firebase initialization
-import 'services/firebase_options.dart'; // Firebase configuration
+import 'package:firebase_core/firebase_core.dart';
+import 'services/firebase_options.dart';
 
 // Import screens
-import 'pages/login.dart'; // Login screen
-import 'pages/create_account.dart'; // Create Account screen
-import 'pages/forget_password.dart'; // Forgot Password screen
-import 'bottom_navigation_bar.dart'; // 🔄 Renamed to bottom_navigation_bar.dart
+import 'pages/login.dart';
+import 'pages/create_account.dart';
+import 'pages/forget_password.dart';
+import 'bottom_navigation_bar.dart';
 import 'pages/user_profile/profile_page.dart';
 import 'pages/user_profile/edit_profile.dart';
 
-// Import logger for better debugging
+// Import utilities
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// Onboarding screen
+import 'onboarding/onboarding_flow.dart';
 
 void main() async {
-  // Initialize Logger
-  final logger = Logger();
-
-  // Ensure Flutter bindings are initialized before running the app
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase with error handling
+  final logger = Logger();
+
+  // Check if user has already onboarded
+  final prefs = await SharedPreferences.getInstance();
+  final onboarded = prefs.getBool('hasOnboarded') ?? false;
+
+  // Initialize Firebase
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    logger.i(
-      'Firebase initialized successfully.',
-    ); // Use logger instead of print
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    logger.i('Firebase initialized successfully.');
   } catch (e) {
-    logger.e('Error initializing Firebase: $e'); // Use logger instead of print
+    logger.e('Error initializing Firebase: $e');
   }
 
-  // Run the app
-  runApp(const MyApp());
+  runApp(MyApp(onboarded: onboarded));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool onboarded;
+
+  const MyApp({super.key, required this.onboarded});
 
   @override
   Widget build(BuildContext context) {
@@ -47,19 +50,17 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: '/',
+      initialRoute: onboarded ? '/login' : '/',
       routes: {
-        '/': (context) => const LoginPage(),
+        '/': (context) => const OnboardingFlow(),
+        '/login': (context) => const LoginPage(),
         '/create_account': (context) => const CreateAccountPage(),
         '/forget_password': (context) => const ForgetPasswordPage(),
-        '/home':
-            (context) =>
-                const BottomNavigationBarScreen(), // ✅ Updated class name
-        '/login': (context) => const LoginPage(),
+        '/home': (context) => const BottomNavigationBarScreen(),
         '/profile': (context) => const ProfilePage(),
         '/edit_profile': (context) => const EditProfilePage(),
       },
-      debugShowCheckedModeBanner: false, // Remove the debug banner
+      debugShowCheckedModeBanner: false,
     );
   }
 }
