@@ -35,7 +35,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - .env
+    - lib/models/.env
     - assets/icons/Arrow - Left 2.svg
     - assets/icons/button.svg
     - assets/icons/Search.svg
