@@ -23,13 +23,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final List<Widget> _pages = [
     home.HomePage(),
     calendar.CalendarLogbookPage(),
-    journal.JournalEntryPage(
-      emotion: '',
-      journal: '',
-      pictureDescription: '',
-      imageURL: '',
-      userEmail: '',
-    ),
     data.DataAnalysisPage(),
     articles.ArticlesPage(), // ✅ Use list page by default
     const ProfilePage(),
