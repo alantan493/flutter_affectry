@@ -21,7 +21,7 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
   final Logger _logger = Logger(); // Logger instance
 
   // Calendar related variables
-  CalendarFormat _calendarFormat = CalendarFormat.twoWeeks;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   Map<DateTime, List<dynamic>> _events = {};
