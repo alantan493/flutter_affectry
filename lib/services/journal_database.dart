@@ -123,6 +123,32 @@ class DatabaseService {
       rethrow;
     }
   }
+  /// Get the count of each emotion for the current user
+  Future<Map<String, int>> getEmotionCounts() async {
+    try {
+      final String? userEmail = FirebaseAuth.instance.currentUser?.email;
+      if (userEmail == null || userEmail.isEmpty) {
+        throw Exception('User is not logged in or email is unavailable.');
+      }
+
+      QuerySnapshot snapshot = await _journalCollection
+          .where('userEmail', isEqualTo: userEmail)
+          .get();
+
+      Map<String, int> emotionCounts = {};
+
+      for (var doc in snapshot.docs) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        String emotion = data['emotion'] ?? 'Unknown';
+        emotionCounts[emotion] = (emotionCounts[emotion] ?? 0) + 1;
+      }
+
+      return emotionCounts;
+    } catch (e) {
+      logger.e('Error fetching emotion counts: $e');
+      rethrow;
+    }
+  }
 }
 
 // Keep the original function for backward compatibility
