@@ -8,17 +8,22 @@ final logger = Logger();
 
 /// Class to handle all database operations for journal entries
 class DatabaseService {
-  final CollectionReference _journalCollection = FirebaseFirestore.instance.collection('journal_entries');
+  final CollectionReference _journalCollection = FirebaseFirestore.instance
+      .collection('journal_entries');
 
   /// Fetch userEmail from Firestore (if needed)
   Future<String?> fetchUserEmail(String userUid) async {
     try {
-      final CollectionReference accountCollection = FirebaseFirestore.instance.collection('account_details');
-      final DocumentSnapshot userDoc = await accountCollection.doc(userUid).get();
+      final CollectionReference accountCollection = FirebaseFirestore.instance
+          .collection('account_details');
+      final DocumentSnapshot userDoc =
+          await accountCollection.doc(userUid).get();
 
       if (userDoc.exists) {
-        final Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
-        final String? userEmail = userData?['email']; // Replace 'email' with the actual field name in your Firestore document
+        final Map<String, dynamic>? userData =
+            userDoc.data() as Map<String, dynamic>?;
+        final String? userEmail =
+            userData?['email']; // Replace 'email' with the actual field name in your Firestore document
         logger.i('Fetched userEmail from Firestore: $userEmail');
         return userEmail;
       } else {
@@ -31,44 +36,69 @@ class DatabaseService {
     }
   }
 
+  Future<JournalEntry?> getJournalEntryById(String id) async {
+    try {
+      final DocumentSnapshot doc =
+          await FirebaseFirestore.instance
+              .collection('journal_entries')
+              .doc(id)
+              .get();
+
+      if (doc.exists) {
+        return JournalEntry.fromFirestore(doc);
+      }
+      return null;
+    } catch (e) {
+      logger.e('Error fetching journal entry: $e');
+      return null;
+    }
+  }
+
   /// Save a journal entry to Firestore
   /// If id is provided, it will update the existing entry
   /// If id is null, it will create a new entry
   /// Returns the document ID of the saved entry
   Future<String> saveJournalEntry(JournalEntry entry, {String? id}) async {
     try {
-      final String? userEmail = FirebaseAuth.instance.currentUser?.email;
-      if (userEmail == null || userEmail.isEmpty) {
-        throw Exception('User is not logged in or email is unavailable.');
+      // Prepare the data to save
+      final Map<String, dynamic> data = {
+        'emotion': entry.emotion,
+        'journal': entry.journal,
+        'pictureDescription': entry.pictureDescription,
+        'imageURL': entry.imageURL ?? '',
+        'timestamp': entry.timestamp,
+        'userEmail': entry.userEmail,
+      };
+
+      // Add AI fields if they exist
+      if (entry.aiAcknowledgement != null) {
+        data['aiAcknowledgement'] = entry.aiAcknowledgement;
+      }
+      if (entry.aiAdvice != null) {
+        data['aiAdvice'] = entry.aiAdvice;
+      }
+      if (entry.analysisTimestamp != null) {
+        data['analysisTimestamp'] = entry.analysisTimestamp;
       }
 
-      // Ensure the entry includes the user's email
-      final journalEntryWithEmail = JournalEntry(
-        emotion: entry.emotion,
-        journal: entry.journal,
-        pictureDescription: entry.pictureDescription,
-        imageURL: entry.imageURL,
-        timestamp: entry.timestamp,
-        userEmail: userEmail, // Include the user's email
-      );
+      // Save to Firestore
+      final CollectionReference journalCollection = FirebaseFirestore.instance
+          .collection('journal_entries');
 
-      if (id != null) {
+      if (id != null && id.isNotEmpty) {
         // Update existing entry
-        await _journalCollection.doc(id).set(journalEntryWithEmail.toJson());
-        logger.i('Journal entry successfully updated with ID: $id');
+        await journalCollection.doc(id).update(data);
+        logger.i('Updated existing journal entry with ID: $id');
         return id;
       } else {
         // Create new entry
-        DocumentReference docRef = await _journalCollection.add(journalEntryWithEmail.toJson());
-        logger.i('New journal entry successfully created with ID: ${docRef.id}');
+        final docRef = await journalCollection.add(data);
+        logger.i('Created new journal entry with ID: ${docRef.id}');
         return docRef.id;
       }
-    } on FirebaseException catch (e) {
-      logger.e('FirebaseException while saving journal entry: ${e.message}');
-      rethrow;
     } catch (e) {
-      logger.e('Unexpected error while saving journal entry: $e');
-      rethrow;
+      logger.e('Error saving journal entry: $e');
+      throw Exception('Failed to save journal entry: $e');
     }
   }
 
@@ -106,17 +136,15 @@ class DatabaseService {
         throw Exception('User is not logged in or email is unavailable.');
       }
 
-      QuerySnapshot snapshot = await _journalCollection
-          .where('userEmail', isEqualTo: userEmail) // Filter by userEmail
-          .orderBy('timestamp', descending: true)
-          .get();
+      QuerySnapshot snapshot =
+          await _journalCollection
+              .where('userEmail', isEqualTo: userEmail) // Filter by userEmail
+              .orderBy('timestamp', descending: true)
+              .get();
 
       return snapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        return {
-          'id': doc.id,
-          'data': data,
-        };
+        return {'id': doc.id, 'data': data};
       }).toList();
     } catch (e) {
       logger.e('Error fetching all journal entries for user: $e');

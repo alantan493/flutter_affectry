@@ -1,4 +1,5 @@
 // calendar_logbook.dart
+import 'package:emotion_journal/pages/ai_analysis_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -326,29 +327,197 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
             Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: InkWell(
+                // Update the onTap handler in the _buildJournalEntriesList method
                 onTap: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => JournalEntryPage(
-                            docId: docId,
-                            emotion: data['emotion'] ?? '',
-                            journal: data['journal'] ?? '',
-                            pictureDescription:
-                                data['pictureDescription'] ?? '',
-                            imageURL: data['imageURL'],
-                            timestamp: data['timestamp']?.toDate(),
-                            userEmail: data['userEmail'] ?? '',
-                          ),
+                  // Show options to the user
+                  showModalBottomSheet(
+                    context: context,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(20),
+                      ),
                     ),
-                  );
+                    builder: (context) {
+                      return Container(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'Choose an option',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            ListTile(
+                              leading: const Icon(
+                                Icons.edit,
+                                color: Colors.blue,
+                              ),
+                              title: const Text('Edit Journal Entry'),
+                              onTap: () async {
+                                Navigator.pop(
+                                  context,
+                                ); // Close the bottom sheet
 
-                  if (result != null && context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Journal entry updated!')),
-                    );
-                  }
+                                // Open the journal entry for editing (existing functionality)
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => JournalEntryPage(
+                                          docId: docId,
+                                          emotion: data['emotion'] ?? '',
+                                          journal: data['journal'] ?? '',
+                                          pictureDescription:
+                                              data['pictureDescription'] ?? '',
+                                          imageURL: data['imageURL'],
+                                          timestamp:
+                                              data['timestamp']?.toDate(),
+                                          userEmail: data['userEmail'] ?? '',
+                                        ),
+                                  ),
+                                );
+
+                                if (result != null && context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Journal entry updated!'),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(
+                                Icons.psychology,
+                                color: Colors.green,
+                              ),
+                              title: const Text('View AI Analysis'),
+                              onTap: () async {
+                                Navigator.pop(
+                                  context,
+                                ); // Close the bottom sheet
+
+                                try {
+                                  // Check if entry has existing analysis
+                                  final DatabaseService db = DatabaseService();
+                                  final journalEntry = await db
+                                      .getJournalEntryById(docId);
+
+                                  if (journalEntry == null) {
+                                    throw Exception('Journal entry not found');
+                                  }
+
+                                  if (!context.mounted) return;
+
+                                  if (journalEntry.aiAcknowledgement != null &&
+                                      journalEntry.aiAdvice != null) {
+                                    // Show existing analysis
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => AIAnalysisPage(
+                                              journalEntry: journalEntry,
+                                              imageURL: journalEntry.imageURL,
+                                              existingAnalysis: true,
+                                            ),
+                                      ),
+                                    );
+                                  } else {
+                                    // Ask user if they want to generate analysis
+                                    final shouldGenerate = await showDialog<
+                                      bool
+                                    >(
+                                      context: context,
+                                      builder:
+                                          (context) => AlertDialog(
+                                            title: const Text(
+                                              'No Analysis Found',
+                                            ),
+                                            content: const Text(
+                                              'This entry doesn\'t have an AI analysis yet. Would you like to generate one?',
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed:
+                                                    () => Navigator.pop(
+                                                      context,
+                                                      false,
+                                                    ),
+                                                child: const Text('Cancel'),
+                                              ),
+                                              ElevatedButton(
+                                                onPressed: () {
+                                                  print(
+                                                    "Generate Analysis button clicked",
+                                                  ); // Debug print
+                                                  Navigator.pop(context, true);
+                                                },
+                                                child: const Text(
+                                                  'Generate Analysis',
+                                                ),
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: const Color(
+                                                    0xFF92A3FD,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                    );
+
+if (shouldGenerate == true) {
+                                      if (context.mounted) {
+                                        try {
+                                          // Generate new analysis with proper error handling
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => AIAnalysisPage(
+                                                journalEntry: journalEntry,
+                                                imageURL: journalEntry.imageURL,
+                                              ),
+                                            ),
+                                          ).then((value) {
+                                            // Optional: Handle return from AI analysis page
+                                            print("Returned from AI Analysis page");
+                                          }).catchError((error) {
+                                            print("Navigation error: $error");
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Error: $error')),
+                                            );
+                                          });
+                                        } catch (e) {
+                                          print("Exception during navigation: $e");
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Error: $e')),
+                                          );
+                                        }
+                                      } else {
+                                        print("Context not mounted after dialog");
+                                      }
+                                    } else {
+                                      print("User cancelled analysis generation");
+                                    }
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Error: $e')),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
                 },
                 onLongPress: () {
                   setState(() {

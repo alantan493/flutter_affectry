@@ -6,15 +6,18 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../services/ai_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../services/image_storage.dart';
+import '../services/journal_database.dart';
 
 class AIAnalysisPage extends StatefulWidget {
   final JournalEntry journalEntry;
   final String? imageURL;
+  final bool existingAnalysis;
 
   const AIAnalysisPage({
     super.key,
     required this.journalEntry,
     this.imageURL,
+    this.existingAnalysis = false,
   });
 
   @override
@@ -26,7 +29,8 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
   String _acknowledgement = '';
   String _advice = '';
   String _errorMessage = '';
-  
+  bool _isSaving = false;
+
   // Change to nullable for async initialization
   AIService? _aiService;
   final ImageStorageService _imageStorageService = ImageStorageService();
@@ -34,32 +38,49 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
   @override
   void initState() {
     super.initState();
-    _performAnalysis();
+
+    // Check if we're viewing existing analysis
+    if (widget.existingAnalysis &&
+        widget.journalEntry.aiAcknowledgement != null &&
+        widget.journalEntry.aiAdvice != null) {
+      // Use existing analysis data
+      setState(() {
+        _isAnalyzing = false;
+        _acknowledgement = widget.journalEntry.aiAcknowledgement!;
+        _advice = widget.journalEntry.aiAdvice!;
+      });
+    } else {
+      // Generate new analysis
+      _performAnalysis();
+    }
   }
 
   Future<void> _performAnalysis() async {
     try {
       // First properly initialize the AIService
       _aiService = await AIService.create();
-      
+
       // Check if service initialized properly
       if (!(_aiService?.isInitialized ?? false)) {
         setState(() {
           _isAnalyzing = false;
-          _errorMessage = "Unable to initialize AI service. Please check your configuration.";
+          _errorMessage =
+              "Unable to initialize AI service. Please check your configuration.";
         });
         return;
       }
-      
+
       // Download image if URL is provided
       File? imageFile;
       if (widget.imageURL != null && widget.imageURL!.isNotEmpty) {
-        imageFile = await _imageStorageService.downloadImageFromUrl(widget.imageURL!);
+        imageFile = await _imageStorageService.downloadImageFromUrl(
+          widget.imageURL!,
+        );
       }
-      
+
       // Only proceed if widget is still mounted
       if (!mounted) return;
-      
+
       // Get separate analyses from the AI service
       final acknowledgement = await _aiService!.acknowledgeFeeling(
         emotion: widget.journalEntry.emotion,
@@ -67,18 +88,18 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
         pictureDescription: widget.journalEntry.pictureDescription,
         imageFile: imageFile,
       );
-      
+
       if (!mounted) return;
-      
+
       final advice = await _aiService!.provideAdvice(
         emotion: widget.journalEntry.emotion,
         journalContent: widget.journalEntry.journal,
         pictureDescription: widget.journalEntry.pictureDescription,
         imageFile: imageFile,
       );
-      
+
       if (!mounted) return;
-      
+
       setState(() {
         _isAnalyzing = false;
         _acknowledgement = acknowledgement;
@@ -88,7 +109,8 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
       if (mounted) {
         setState(() {
           _isAnalyzing = false;
-          _acknowledgement = "Sorry, I couldn't analyze your entry at this time.";
+          _acknowledgement =
+              "Sorry, I couldn't analyze your entry at this time.";
           _advice = "Please try again later.";
           _errorMessage = e.toString();
         });
@@ -169,9 +191,9 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              _errorMessage.isEmpty ? 
-                'Please try again later.' : 
-                'Error: $_errorMessage',
+              _errorMessage.isEmpty
+                  ? 'Please try again later.'
+                  : 'Error: $_errorMessage',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 16),
             ),
@@ -224,10 +246,7 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.psychology_alt,
-                  color: Colors.blue[800],
-                ),
+                Icon(Icons.psychology_alt, color: Colors.blue[800]),
                 const SizedBox(width: 10),
                 Text(
                   'Understanding Your Feelings',
@@ -242,10 +261,7 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
             const SizedBox(height: 16),
             Text(
               _acknowledgement,
-              style: const TextStyle(
-                fontSize: 16,
-                height: 1.5,
-              ),
+              style: const TextStyle(fontSize: 16, height: 1.5),
             ),
           ],
         ),
@@ -265,10 +281,7 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.tips_and_updates,
-                  color: Colors.green[700],
-                ),
+                Icon(Icons.tips_and_updates, color: Colors.green[700]),
                 const SizedBox(width: 10),
                 Text(
                   'Suggestions & Next Steps',
@@ -281,13 +294,7 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
               ],
             ),
             const SizedBox(height: 16),
-            Text(
-              _advice,
-              style: const TextStyle(
-                fontSize: 16,
-                height: 1.5,
-              ),
-            ),
+            Text(_advice, style: const TextStyle(fontSize: 16, height: 1.5)),
           ],
         ),
       ),
@@ -297,7 +304,7 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
   Widget _buildJournalDetails() {
     final DateFormat dateFormat = DateFormat('MMM d, yyyy');
     final DateFormat timeFormat = DateFormat('h:mm a');
-    
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -315,18 +322,21 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
               ),
             ),
             const SizedBox(height: 15),
-            
+
             // Emotion
             _buildDetailItem('Emotion', widget.journalEntry.emotion),
             const Divider(),
-            
+
             // Journal text
             _buildDetailItem('Journal Content', widget.journalEntry.journal),
             const Divider(),
-            
+
             // Picture description
-            _buildDetailItem('Picture Description', widget.journalEntry.pictureDescription),
-            
+            _buildDetailItem(
+              'Picture Description',
+              widget.journalEntry.pictureDescription,
+            ),
+
             // Display image if available
             if (widget.imageURL != null && widget.imageURL!.isNotEmpty)
               Padding(
@@ -349,8 +359,8 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
                         height: 180,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            Container(
+                        errorBuilder:
+                            (context, error, stackTrace) => Container(
                               height: 180,
                               color: Colors.grey[200],
                               child: const Center(
@@ -362,9 +372,9 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
                   ],
                 ),
               ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Date and time
             Row(
               children: [
@@ -397,16 +407,10 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 15),
-          ),
+          Text(value, style: const TextStyle(fontSize: 15)),
         ],
       ),
     );
@@ -427,13 +431,56 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
                 borderRadius: BorderRadius.circular(50),
               ),
             ),
-            child: const Text('Edit Entry'),
+            child: Text(widget.existingAnalysis ? 'Back' : 'Edit Entry'),
           ),
           const SizedBox(width: 20),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pushReplacementNamed(context, '/home');
-            },
+            onPressed:
+                _isSaving
+                    ? null
+                    : () async {
+                      setState(() => _isSaving = true);
+
+                      try {
+                        if (!widget.existingAnalysis) {
+                          // Only save if this is a new analysis
+                          final updatedEntry = JournalEntry(
+                            id: widget.journalEntry.id,
+                            emotion: widget.journalEntry.emotion,
+                            journal: widget.journalEntry.journal,
+                            pictureDescription:
+                                widget.journalEntry.pictureDescription,
+                            imageURL: widget.journalEntry.imageURL,
+                            timestamp: widget.journalEntry.timestamp,
+                            userEmail: widget.journalEntry.userEmail,
+                            aiAcknowledgement: _acknowledgement,
+                            aiAdvice: _advice,
+                            analysisTimestamp: DateTime.now(),
+                          );
+
+                          // Save to database
+                          final DatabaseService db = DatabaseService();
+                          await db.saveJournalEntry(
+                            updatedEntry,
+                            id: widget.journalEntry.id,
+                          );
+                        }
+
+                        // Navigate home
+                        if (context.mounted) {
+                          Navigator.pushReplacementNamed(context, '/home');
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Error saving analysis: $e'),
+                            ),
+                          );
+                          setState(() => _isSaving = false);
+                        }
+                      }
+                    },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF92A3FD),
               foregroundColor: Colors.white,
@@ -443,7 +490,10 @@ class _AIAnalysisPageState extends State<AIAnalysisPage> {
               ),
               elevation: 5,
             ),
-            child: const Text('Save & Finish'),
+            child:
+                _isSaving
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : Text(widget.existingAnalysis ? 'Done' : 'Save & Finish'),
           ),
         ],
       ),
