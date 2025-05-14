@@ -470,38 +470,65 @@ class _CalendarLogbookPageState extends State<CalendarLogbookPage> {
                                           ),
                                     );
 
-if (shouldGenerate == true) {
+                                    if (shouldGenerate == true) {
                                       if (context.mounted) {
                                         try {
                                           // Generate new analysis with proper error handling
                                           Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => AIAnalysisPage(
-                                                journalEntry: journalEntry,
-                                                imageURL: journalEntry.imageURL,
-                                              ),
-                                            ),
-                                          ).then((value) {
-                                            // Optional: Handle return from AI analysis page
-                                            print("Returned from AI Analysis page");
-                                          }).catchError((error) {
-                                            print("Navigation error: $error");
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('Error: $error')),
-                                            );
-                                          });
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder:
+                                                      (context) =>
+                                                          AIAnalysisPage(
+                                                            journalEntry:
+                                                                journalEntry,
+                                                            imageURL:
+                                                                journalEntry
+                                                                    .imageURL,
+                                                          ),
+                                                ),
+                                              )
+                                              .then((value) {
+                                                // Optional: Handle return from AI analysis page
+                                                print(
+                                                  "Returned from AI Analysis page",
+                                                );
+                                              })
+                                              .catchError((error) {
+                                                print(
+                                                  "Navigation error: $error",
+                                                );
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      'Error: $error',
+                                                    ),
+                                                  ),
+                                                );
+                                              });
                                         } catch (e) {
-                                          print("Exception during navigation: $e");
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Error: $e')),
+                                          print(
+                                            "Exception during navigation: $e",
+                                          );
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Error: $e'),
+                                            ),
                                           );
                                         }
                                       } else {
-                                        print("Context not mounted after dialog");
+                                        print(
+                                          "Context not mounted after dialog",
+                                        );
                                       }
                                     } else {
-                                      print("User cancelled analysis generation");
+                                      print(
+                                        "User cancelled analysis generation",
+                                      );
                                     }
                                   }
                                 } catch (e) {
