@@ -1,6 +1,6 @@
 name: emotion_journal
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
@@ -25,6 +25,8 @@ dependencies:
   http: ^1.1.0
   path_provider: ^2.1.1
   path: ^1.8.3
+  fl_chart: ^1.0.0
+  url_launcher: ^6.1.11
 
 dev_dependencies:
   flutter_test:
@@ -63,16 +65,17 @@ flutter:
     - assets/icons/onboard1.png
     - assets/icons/onboard2.jpg
     - assets/icons/onboard3.jpg
+    - assets/pinecone/mock_data.json
+    - assets/pinecone/
 
 fonts:
-    - family: Poppins
-      fonts:
-        - asset: fonts/Poppins-Bold.ttf
-          weight: 700
-        - asset: fonts/Poppins-Medium.ttf
-          weight: 500
-        - asset: fonts/Poppins-Regular.ttf
-          weight: 400 
-        - asset: fonts/Poppins-SemiBold.ttf
-          weight: 600
-
+  - family: Poppins
+    fonts:
+      - asset: fonts/Poppins-Bold.ttf
+        weight: 700
+      - asset: fonts/Poppins-Medium.ttf
+        weight: 500
+      - asset: fonts/Poppins-Regular.ttf
+        weight: 400
+      - asset: fonts/Poppins-SemiBold.ttf
+        weight: 600

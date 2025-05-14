@@ -1,0 +1,122 @@
+[
+  {
+    "id": "happy-1",
+    "text": "Savoring positive moments enhances happiness. Take a few minutes to reflect on a recent joyful experience, immersing yourself in the details to amplify the positive emotions.",
+    "tags": ["happy", "savoring", "gratitude"],
+    "source": "https://www.psychologytoday.com/us/blog/the-how-happiness/201908/the-power-savoring"
+  },
+  {
+    "id": "happy-2",
+    "text": "Engaging in acts of kindness can boost your mood. Consider performing a small, thoughtful gesture for someone else today.",
+    "tags": ["happy", "kindness", "positive psychology"],
+    "source": "https://greatergood.berkeley.edu/article/item/5_ways_giving_is_good_for_you"
+  },
+  {
+    "id": "happy-3",
+    "text": "Write down three things that went well today and why they happened to reinforce positive thinking.",
+    "tags": ["happy", "gratitude", "positive journaling"],
+    "source": "https://positivepsychology.com/three-good-things-exercise"
+  },
+  {
+    "id": "happy-4",
+    "text": "Use strengths spotting by identifying one of your personal strengths and applying it in a new situation.",
+    "tags": ["happy", "strengths spotting", "positive psychology"],
+    "source": "https://www.viacharacter.org/topics/articles/using-your-strengths"
+  },
+  {
+    "id": "sad-1",
+    "text": "Allow yourself to feel sadness without judgment. Writing about your feelings in a journal can provide clarity and relief.",
+    "tags": ["sad", "journaling", "emotional expression"],
+    "source": "https://www.healthline.com/health/mental-health/journaling-for-mental-health"
+  },
+  {
+    "id": "sad-2",
+    "text": "Connecting with a trusted friend or family member can alleviate feelings of sadness. Sharing your emotions often lightens the burden.",
+    "tags": ["sad", "social support", "communication"],
+    "source": "https://www.mhanational.org/talking-others-about-your-mental-health"
+  },
+  {
+    "id": "sad-3",
+    "text": "Use behavioral activation: schedule a small enjoyable activity, such as a walk or hobby, and commit to it.",
+    "tags": ["sad", "behavioral activation", "activity scheduling"],
+    "source": "https://www.psychologytools.com/resource/behavioral-activation"
+  },
+  {
+    "id": "sad-4",
+    "text": "Practice self-compassion by speaking kindly to yourself and writing a compassionate letter addressed to you.",
+    "tags": ["sad", "self-compassion", "compassionate writing"],
+    "source": "https://self-compassion.org/exercise-4-writing-a-self-compassionate-letter"
+  },
+  {
+    "id": "angry-1",
+    "text": "Implement the 'STOP' technique: Stop, Take a breath, Observe your feelings, and Proceed mindfully to manage anger in the moment.",
+    "tags": ["angry", "anger management", "DBT"],
+    "source": "https://dialecticalbehaviortherapy.com/distress-tolerance/stop-skill"
+  },
+  {
+    "id": "angry-2",
+    "text": "Physical activity, like a brisk walk or punching a pillow, can help release built-up anger in a healthy way.",
+    "tags": ["angry", "physical activity", "coping strategies"],
+    "source": "https://www.verywellmind.com/exercise-and-mental-health-4157146"
+  },
+  {
+    "id": "angry-3",
+    "text": "Use progressive muscle relaxation: systematically tense and release muscle groups from toes to head to reduce bodily tension.",
+    "tags": ["angry", "progressive muscle relaxation", "relaxation"],
+    "source": "https://www.anxietycanada.com/articles/how-to-do-progressive-muscle-relaxation"
+  },
+  {
+    "id": "angry-4",
+    "text": "Keep an anger log by noting triggers, bodily sensations, automatic thoughts, and alternative responses for later reflection.",
+    "tags": ["angry", "anger log", "CBT"],
+    "source": "https://www.therapistaid.com/worksheets/anger-log.pdf"
+  },
+  {
+    "id": "stressed-1",
+    "text": "Practice deep breathing exercises: inhale for 4 seconds, hold for 7 seconds, and exhale for 8 seconds to calm the nervous system.",
+    "tags": ["stressed", "breathing exercises", "relaxation"],
+    "source": "https://www.sleepfoundation.org/sleep-hygiene/4-7-8-breathing"
+  },
+  {
+    "id": "stressed-2",
+    "text": "Prioritize tasks by creating a to-do list and breaking down overwhelming responsibilities into manageable steps.",
+    "tags": ["stressed", "time management", "organization"],
+    "source": "https://todoist.com/productivity-methods/getting-things-done"
+  },
+  {
+    "id": "stressed-3",
+    "text": "Practice box breathing: inhale for 4 seconds, hold for 4 seconds, exhale for 4 seconds, hold for 4 seconds, and repeat to balance your nervous system.",
+    "tags": ["stressed", "box breathing", "breathing exercises"],
+    "source": "https://health.clevelandclinic.org/what-is-box-breathing"
+  },
+  {
+    "id": "stressed-4",
+    "text": "Use time blocking by allocating specific time slots for focused work and breaks to manage your workload effectively.",
+    "tags": ["stressed", "time management", "organization"],
+    "source": "https://doist.com/blog/time-blocking"
+  },
+  {
+    "id": "calm-1",
+    "text": "Maintain your sense of calm by engaging in mindfulness meditation for 10 minutes daily, focusing on your breath and bodily sensations.",
+    "tags": ["calm", "mindfulness", "meditation"],
+    "source": "https://www.headspace.com/mindfulness"
+  },
+  {
+    "id": "calm-2",
+    "text": "Listening to soothing music can help sustain a calm state. Choose melodies that relax and uplift you.",
+    "tags": ["calm", "music therapy", "relaxation"],
+    "source": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3734071"
+  },
+  {
+    "id": "calm-3",
+    "text": "Engage in a guided imagery exercise by visualizing a peaceful scene in detail for five minutes.",
+    "tags": ["calm", "guided imagery", "mindfulness"],
+    "source": "https://www.healthline.com/health/guided-imagery"
+  },
+  {
+    "id": "calm-4",
+    "text": "Practice a body scan meditation: mentally scan from feet to head, noticing and releasing tension as you go.",
+    "tags": ["calm", "body scan", "meditation"],
+    "source": "https://www.mindful.org/body-scan-kabat-zinn"
+  }
+]
